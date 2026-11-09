@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Documentação do Projeto - Docker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    h1 { border-bottom: 2px solid #0080ff; padding-bottom: 8px; }
+    form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+    input, textarea, button { padding: 10px; font-size: 14px; }
+    button { background: #0080ff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    .card { background: #f4f6f8; padding: 15px; border-radius: 6px; margin-bottom: 12px; }
+    .card h3 { margin: 0 0 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>Documentação de Estudos Docker</h1>
+  
+  <form id="docForm">
+    <input type="text" id="title" placeholder="Título (ex: O que são Volumes)" required />
+    <textarea id="content" rows="3" placeholder="Anotações e detalhes conceituais..." required></textarea>
+    <button type="submit">Salvar Tópico</button>
+  </form>
+
+  <h2>Tópicos Registrados</h2>
+  <div id="docsList">Carregando dados do banco...</div>
+
+  <script>
+    async function loadDocs() {
+      const res = await fetch('/api/docs');
+      const data = await res.json();
+      const list = document.getElementById('docsList');
+      if (data.length === 0) {
+        list.innerHTML = '<p>Nenhum tópico registrado ainda.</p>';
+        return;
+      }
+      list.innerHTML = data.map(item => `
+        <div class="card">
+          <h3>#${item.id} - ${item.title}</h3>
+          <p>${item.content}</p>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('docForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+
+      await fetch('/api/docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content })
+      });
+
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+      loadDocs();
+    });
+
+    loadDocs();
+  </script>
+</body>
+</html>
